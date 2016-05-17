@@ -86,7 +86,7 @@ const uint8_t Aes::T_Const_Mix_Inv[4][4] = {
     {0x0D,0x09,0x0E,0x0B},
     {0x0B,0x0D,0x09,0x0E},
 };
-wstring Aes::getKey() const
+array<uint8_t,32> Aes::getKey() const
 {
     return key;
 }
@@ -94,48 +94,41 @@ wstring Aes::getKey() const
 /*
  * Set a Aes Key and Expand cipher key
  */
-void Aes::setKey(const wstring &value,int c_key_len)
-{
-    key = value;
-    cipher_key_length = c_key_len;
-    switch(c_key_len)
-    {
-    case 128: round_count = 10; break;
-    case 192: round_count = 12; break;
-    case 256: round_count = 14; break;
-    }
-    int i=0;
-    for(auto c : value)
-    {
-        key_256[i++] = c>>8&0x00ff;
-        key_256[i++] = c&0x00ff;
-    }
-    for(int j=i;j<cipher_key_length/8;++j) key_256[j] = 0x00;
-
-    _key_Expansion();
-}
+//template<size_t _S>
+//void Aes::setKey(array<uint8_t,_S> value)
+//{
+//    cipher_key_length = _S*8;
+//    switch(cipher_key_length)
+//    {
+//    case 128: round_count = 10; break;
+//    case 192: round_count = 12; break;
+//    case 256: round_count = 14; break;
+//    }
+//    for(int i=0;i<_S;++i)
+//    {
+//        key[i] = key_256[i] = value[i];
+//    }
+//    _key_Expansion();
+//}
 
 /*
  * Encrypt interface
  */
-wstring Aes::Encrypt(wstring source)
+array<uint8_t,16> Aes::Encrypt(array<uint8_t,16> source)
 {
     clear_state();
-    int i = 0,j = 0;
-    for(auto c:source)
-    {
-        state_src[j*2][i] = c>>8&0x00ff;
-        state_src[j*2+1][i] = c&0x00ff;
-        if(++j == 2){j = 0;++i;if(i>4)break;}
-    }
+    for(int i=0;i<4;++i)
+        for(int j=0;j<4;++j)
+        {
+            state_src[j][i] = source[i*4+j];
+        }
     _Encrypt();
-    wstring result;
+    array<uint8_t,16> result = {0};
     for(int i=0;i<4;++i)
     {
-        for(int j=0;j<2;++j)
+        for(int j=0;j<4;++j)
         {
-            uint16_t tt = state_dst[j*2][i]<<8&0xff00 | state_dst[j*2+1][i]&0x00ff;
-            result += tt;
+            result [i*4+j]= state_dst[j][i];
         }
     }
     return result;
@@ -144,23 +137,21 @@ wstring Aes::Encrypt(wstring source)
 /*
  * Decrypt interface
  */
-wstring Aes::Decrypt(wstring source)
+array<uint8_t,16> Aes::Decrypt(array<uint8_t,16> source)
 {
     clear_state();
-        int i = 0,j = 0;
-    for(auto c:source)
-    {
-        state_dst[j*2][i] = c>>8&0x00ff;
-        state_dst[j*2+1][i] = c&0x00ff;
-        if(++j == 2){j = 0;++i;if(i>4)break;}
-    }
+    for(int i=0;i<4;++i)
+        for(int j=0;j<4;++j)
+        {
+            state_dst[j][i] = source[i*4+j];
+        }
     _Decrypt();
-    wstring result;
+    array<uint8_t,16> result = {0};
     for(int i=0;i<4;++i)
     {
-        for(int j=0;j<2;++j)
+        for(int j=0;j<4;++j)
         {
-            result += state_src[j*2][i]<<8&0xff00 | state_src[j*2+1][i]&0x00ff;
+            result [i*4+j]= state_src[j][i];
         }
     }
     return result;
@@ -204,7 +195,7 @@ void Aes::_key_Expansion()
 
     for(int i=0;i<ke_r_cnt;++i)
     {
-        cout<<"Round Key["<<i+1<<"] : ";
+//        cout<<"Round Key["<<i+1<<"] : ";
         array<uint8_t,4> tempw;
         for(int j=0;j<4;++j) tempw[j] = expand_key[i*key_bl+key_bl-4+j];
         tempw = _make_temp_word(tempw,RCon[i]);

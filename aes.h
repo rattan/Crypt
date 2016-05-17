@@ -39,7 +39,7 @@ struct shift_row_inv{
 class Aes
 {
 
-    wstring key;
+    array<uint8_t,32> key;
 
     // Cipher key with byte array
     array<uint8_t,32> key_256;
@@ -86,12 +86,28 @@ public:
     enum {keylen_128 = 128,keylen_192 = 192,keylen_256 = 256};
 
     // Aes key.
-    wstring getKey() const;
-    void setKey(const wstring &value,int c_key_len);
+    array<uint8_t,32> getKey() const;
+
+    template<size_t _S>
+    void setKey(array<uint8_t,_S> value)
+    {
+        cipher_key_length = _S*8;
+        switch(cipher_key_length)
+        {
+        case 128: round_count = 10; break;
+        case 192: round_count = 12; break;
+        case 256: round_count = 14; break;
+        }
+        for(int i=0;i<_S;++i)
+        {
+            key[i] = key_256[i] = value[i];
+        }
+        _key_Expansion();
+    }
 
     // Do Encrypt, Decrypt
-    wstring Encrypt(wstring source);
-    wstring Decrypt(wstring source);
+    array<uint8_t,16> Encrypt(array<uint8_t,16> source);
+    array<uint8_t,16> Decrypt(array<uint8_t,16> source);
 
     Sender sender;
 };

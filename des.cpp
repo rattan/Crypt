@@ -95,7 +95,7 @@ const int Des::T_Compression_P_Box[48] = {
     51, 45, 33, 48, 44, 49, 39, 56,
     34, 53, 46, 42, 50, 36, 29, 32 };
 
-wstring Des::getKey() const
+array<uint8_t,8> Des::getKey() const
 {
     return key;
 }
@@ -103,22 +103,35 @@ wstring Des::getKey() const
 /*
  * Set a Des Key
  */
-void Des::setKey(const wstring &value)
+void Des::setKey(const array<uint8_t,8> &value)
 {
     key = value;
     key_64.reset();
-    int kl = key.length();
-    if(kl>4) kl = 4;
-    for (int i = 0; i < kl ; ++i)
+    for (int i = 0; i < 8 ; ++i)
     {
-        wchar_t c = key[kl- 1 - i];
-        for (int j = 0; j < 16 && c; ++j) {
+        uint8_t c = key[7 - i];
+        for (int j = 0; j < 8 && c; ++j) {
             if (c & 0x1) {
-                key_64.set(16 * i + j);
+                key_64.set(8 * i + j);
             }
             c >>= 1;
         }
     }
+
+//    key = value;
+//    key_64.reset();
+//    int kl = key.length();
+//    if(kl>4) kl = 4;
+//    for (int i = 0; i < kl ; ++i)
+//    {
+//        wchar_t c = key[kl- 1 - i];
+//        for (int j = 0; j < 16 && c; ++j) {
+//            if (c & 0x1) {
+//                key_64.set(16 * i + j);
+//            }
+//            c >>= 1;
+//        }
+//    }
     _R_Key_Generate();
 }
 
@@ -342,43 +355,33 @@ Des::Des()
 }
 
 /*
- * Initializer with DES Key
- */
-Des::Des(wstring ky) :key(ky)
-{
-    setKey(ky);
-}
-
-/*
  * Encrypt parameter PlainText.
  * PlainText must be 8Byte.
  */
-wstring Des::Encrypt(wstring PlainText)
+array<uint8_t,8> Des::Encrypt(array<uint8_t,8> PlainText)
 {
-
     data_src.reset();
     data_dst.reset();
-    for (int i = 0; i < PlainText.length(); ++i)
+    for (int i = 0; i < 8; ++i)
     {
-        uint16_t c = PlainText[PlainText.length() - 1 - i];
-        for (int j = 0; j < 16 && c; ++j) {
+        uint16_t c = PlainText[i];
+        for (int j = 0; j < 8 && c; ++j) {
             if (c & 0x1) {
-                data_src.set(16 * i + j);
+                data_src.set(8 * (7-i) + j);
             }
             c >>= 1;
         }
     }
-
     _Encrypt();
-    wstring result = L"";
-    for(int i=3;i>=0;--i)
+    array<uint8_t,8> result;
+    for(int i=7;i>=0;--i)
     {
         uint16_t c = 0;
-        for(int j=0;j<16;++j)
+        for(int j=0;j<8;++j)
         {
-            data_dst[i*16+j] ? c|=0x01<<j : c;
+            data_dst[i*8+j] ? c|=0x01<<j : c;
         }
-        result += c;
+        result[7-i] = c;
     }
     return result;
 }
@@ -387,30 +390,30 @@ wstring Des::Encrypt(wstring PlainText)
  * Decrypt parameter CipherText.
  * CipherText must be 8Byte.
  */
-wstring Des::Decrypt(wstring CipherText)
+array<uint8_t,8> Des::Decrypt(array<uint8_t,8> CipherText)
 {
     data_src.reset();
     data_dst.reset();
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < 8; ++i)
     {
-        uint16_t c = CipherText[3 - i];
-        for (int j = 0; j < 16 && c; ++j) {
+        uint16_t c = CipherText[7 - i];
+        for (int j = 0; j < 8 && c; ++j) {
             if (c & 0x1) {
-                data_dst.set(16 * i + j);
+                data_dst.set(8 * i + j);
             }
             c >>= 1;
         }
     }
     _Decrypt();
-    wstring result = L"";
-    for(int i=3;i>=0;--i)
+    array<uint8_t,8> result;
+    for(int i=7;i>=0;--i)
     {
         uint16_t c = 0;
-        for(int j=0;j<16;++j)
+        for(int j=0;j<8;++j)
         {
-            data_src[i*16+j] ? c|=0x01<<j : c;
+            data_src[i*8+j] ? c|=0x01<<j : c;
         }
-        result += c;
+        result[7-i] = c;
     }
 
     return result;

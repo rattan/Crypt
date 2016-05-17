@@ -66,6 +66,12 @@ private:
 
     void closeEvent(QCloseEvent* e);
 
+    template<size_t _S>
+    QString arrtoqstr(array<uint8_t,_S> arr);
+
+    void _set_aes_key(QString key);
+
+
 };
 
 #endif // WIDGET_H

@@ -20,6 +20,7 @@
 
 #include<string>
 #include<bitset>
+#include<array>
 #include<iostream>
 
 #include"sender.h"
@@ -33,7 +34,8 @@ class Des
     bitset<64> data_dst;
 
     // Des Cipher Key
-    wstring key;
+    array<uint8_t,8> key;
+//    wstring key;
     bitset<64> key_64;
 
     //Des Round Key
@@ -73,16 +75,15 @@ class Des
 
 public:
     Des();
-    Des(wstring ky);
     enum {Enc = 0,Dec = 1};
 
     // Do Encrypt, Decrypt
-    wstring Encrypt(wstring PlainText);
-    wstring Decrypt(wstring CipherText);
+    array<uint8_t,8> Encrypt(array<uint8_t,8> PlainText);
+    array<uint8_t,8> Decrypt(array<uint8_t,8> CipherText);
 
     // Des Key
-    wstring getKey() const;
-    void setKey(const wstring &value);
+    array<uint8_t,8> getKey() const;
+    void setKey(const array<uint8_t,8> &value);
 
     Sender sender;
 };

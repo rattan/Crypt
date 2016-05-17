@@ -13,8 +13,8 @@ Widget::Widget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-//    setAttribute(Qt::WA_TranslucentBackground); //enable MainWindow to be transparent
-//    setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    //    setAttribute(Qt::WA_TranslucentBackground); //enable MainWindow to be transparent
+    //    setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
 
     QGraphicsDropShadowEffect *effect[9];
     for(int i=0;i<9;++i)
@@ -52,22 +52,27 @@ void Widget::on_push_enc_clicked()
     QString CipherText = "";
     if(this->ui->radio_des->isChecked())
     {
-        des.setKey(key.toStdWString());
+        array<uint8_t,8> ky = {0}; int j=0;
+        for(auto c:key.mid(0,8)){ ky[j++] = c.unicode()>>8&0x00ff; ky[j++] = c.unicode()&0x00ff; }
+        des.setKey(ky);
         for(int i=0;i<PlainText.length();i+=4)
         {
-            CipherText += QString::fromStdWString(des.Encrypt(PlainText.mid(i,4).toStdWString()));
+            array<uint8_t,8> pt = {0}; int j = 0;
+            for(auto c:PlainText.mid(i,4)){ pt[j++] = c.unicode()>>8&0x00ff; pt[j++] = c.unicode()&0x00ff; }
+            CipherText += arrtoqstr(des.Encrypt(pt));
         }
     }
     else if(this->ui->radio_aes->isChecked())
     {
-        if(this->ui->radio_128->isChecked()) aes.setKey(key.toStdWString(),Aes::keylen_128);
-        else if(this->ui->radio_192->isChecked()) aes.setKey(key.toStdWString(),Aes::keylen_192);
-        else if(this->ui->radio_256->isChecked()) aes.setKey(key.toStdWString(),Aes::keylen_256);
+        _set_aes_key(key);
         for(int i=0;i<PlainText.length();i+=8)
         {
-            CipherText += QString::fromStdWString(aes.Encrypt(PlainText.mid(i,8).toStdWString()));
+            array<uint8_t,16> pt = {0}; int j = 0;
+            for(auto c:PlainText.mid(i,8)){ pt[j++] = c.unicode()>>8&0x00ff; pt[j++] = c.unicode()&0x00ff; }
+            CipherText += arrtoqstr(aes.Encrypt(pt));
         }
     }
+
     this->ui->text_cipher->setText(CipherText);
 }
 
@@ -78,20 +83,24 @@ void Widget::on_push_dec_clicked()
     QString CipherText = this->ui->text_cipher->toPlainText();
     if(this->ui->radio_des->isChecked())
     {
-        des.setKey(key.toStdWString());
+        array<uint8_t,8> ky = {0}; int j=0;
+        for(auto c:key.mid(0,8)){ ky[j++] = c.unicode()>>8&0x00ff; ky[j++] = c.unicode()&0x00ff; }
+        des.setKey(ky);
         for(int i=0;i<CipherText.length();i+=4)
         {
-            PlainText += QString::fromStdWString(des.Decrypt(CipherText.mid(i,4).toStdWString()));
+            array<uint8_t,8> ct = {0};int j = 0;
+            for(auto c:CipherText.mid(i,4)){ ct[j++] = c.unicode()>>8&0x00ff; ct[j++] = c.unicode()&0x00ff; }
+            PlainText += arrtoqstr(des.Decrypt(ct));
         }
     }
     else if(this->ui->radio_aes->isChecked())
     {
-        if(this->ui->radio_128->isChecked()) aes.setKey(key.toStdWString(),Aes::keylen_128);
-        else if(this->ui->radio_192->isChecked()) aes.setKey(key.toStdWString(),Aes::keylen_192);
-        else if(this->ui->radio_256->isChecked()) aes.setKey(key.toStdWString(),Aes::keylen_256);
+        _set_aes_key(key);
         for(int i=0;i<CipherText.length();i+=8)
         {
-            PlainText += QString::fromStdWString(aes.Decrypt(CipherText.mid(i,8).toStdWString()));
+            array<uint8_t,16> ct = {0};int j = 0;
+            for(auto c:CipherText.mid(i,8)){ ct[j++] = c.unicode()>>8&0x00ff; ct[j++] = c.unicode()&0x00ff; }
+            PlainText += arrtoqstr(aes.Decrypt(ct));
         }
     }
     this->ui->text_plain->setText(PlainText);
@@ -216,3 +225,38 @@ void Widget::closeEvent(QCloseEvent *e)
     console.close();
 }
 
+void Widget::_set_aes_key(QString key)
+{
+    int j=0;
+    if(this->ui->radio_128->isChecked())
+    {
+        array<uint8_t,16> ky = {0};
+        for(auto c:key.mid(0,16)){ ky[j++] = c.unicode()>>8&0x00ff; ky[j++] = c.unicode()&0x00ff; }
+        aes.setKey<16>(ky);
+    }
+    else if(this->ui->radio_192->isChecked())
+    {
+        array<uint8_t,24> ky = {0};
+        for(auto c:key.mid(0,24)){ ky[j++] = c.unicode()>>8&0x00ff; ky[j++] = c.unicode()&0x00ff; }
+        aes.setKey<24>(ky);
+    }
+    else if(this->ui->radio_256->isChecked())
+    {
+        array<uint8_t,32> ky = {0};
+        for(auto c:key.mid(0,32)){ ky[j++] = c.unicode()>>8&0x00ff; ky[j++] = c.unicode()&0x00ff; }
+        aes.setKey<32>(ky);
+
+    }
+}
+
+template<size_t _S>
+QString Widget::arrtoqstr(array<uint8_t,_S> arr)
+{
+    QString str;
+    for(int i=0;i<_S;i+=2)
+    {
+        QChar c = arr[i]<<8&0xff00 | arr[i+1]&0x00ff;
+        str+=c;
+    }
+    return str;
+}
