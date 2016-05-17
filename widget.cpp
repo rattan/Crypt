@@ -13,10 +13,8 @@ Widget::Widget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    setAttribute(Qt::WA_TranslucentBackground); //enable MainWindow to be transparent
-    setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    QtWin::enableBlurBehindWindow(this);
-    QtWin::extendFrameIntoClientArea(this,-1,-1,-1,-1);
+//    setAttribute(Qt::WA_TranslucentBackground); //enable MainWindow to be transparent
+//    setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
 
     QGraphicsDropShadowEffect *effect[9];
     for(int i=0;i<9;++i)
@@ -36,6 +34,10 @@ Widget::Widget(QWidget *parent) :
     this->ui->radio_128->setGraphicsEffect(effect[6]);
     this->ui->radio_192->setGraphicsEffect(effect[7]);
     this->ui->radio_256->setGraphicsEffect(effect[8]);
+
+    connect(&des.sender,SIGNAL(_send_str(string)),&console,SLOT(set_str(string)));
+    connect(&aes.sender,SIGNAL(_send_str(string)),&console,SLOT(set_str(string)));
+    console.show();
 }
 
 Widget::~Widget()
@@ -106,6 +108,7 @@ void Widget::on_text_plain_textChanged()
         temp.sprintf("%04X ",c);
         hex+=temp;
     }
+    hex.remove(hex.length()-1,1);
     ui->text_plain_hex->setText(hex);
     ch_plain = false;
 }
@@ -136,6 +139,7 @@ void Widget::on_text_cipher_textChanged()
         temp.sprintf("%04X ",c);
         hex+=temp;
     }
+    hex.remove(hex.length()-1,1);
     ui->text_cipher_hex->setText(hex);
     ch_cipher = false;
 }
@@ -158,14 +162,15 @@ void Widget::on_line_key_textChanged(const QString &arg1)
 {
     if(ch_key_h) return;
     ch_key = true;
-    QString res;
+    QString hex = "";
     for(auto c:arg1)
     {
         QString temp;
         temp.sprintf("%04X ",c.unicode());
-        res+=temp;
+        hex+=temp;
     }
-    this->ui->line_key_hex->setText(res);
+    hex.remove(hex.length()-1,1);
+    this->ui->line_key_hex->setText(hex);
     ch_key = false;
 }
 void Widget::on_line_key_hex_textChanged(const QString &arg1)
@@ -199,3 +204,15 @@ void Widget::on_radio_aes_clicked()
     this->ui->radio_192->setEnabled(true);
     this->ui->radio_256->setEnabled(true);
 }
+
+void Widget::on_push_console_clicked()
+{
+    if(console.isHidden()) console.show();
+    else console.hide();
+}
+
+void Widget::closeEvent(QCloseEvent *e)
+{
+    console.close();
+}
+

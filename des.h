@@ -14,10 +14,16 @@
  * Key and input data is 64bit or more or less.
  * If more than 64 bit, key cut over 64bits ~ and data split 64bit and calculate each data.
  * If less than 64bit, fill 0 over effective value.
+ *
+ * show standard output when key generating and processing rounds.
  */
 
 #include<string>
 #include<bitset>
+#include<iostream>
+
+#include"sender.h"
+
 using namespace std;
 
 class Des
@@ -51,7 +57,6 @@ class Des
     // Encrypt, Decrypt Bolcks
     bitset<64> _Permutation(bitset<64> cource,const int*table);
     bitset<64> _Initial_Permutation(bitset<64> source);
-    void _Round(int rnum);
     bitset<64> _Mixer(bitset<64> source,int kn);
     bitset<64> _Swapper(bitset<64> source);
     bitset<64> _Final_Permutation(bitset<64> source);
@@ -69,6 +74,7 @@ class Des
 public:
     Des();
     Des(wstring ky);
+    enum {Enc = 0,Dec = 1};
 
     // Do Encrypt, Decrypt
     wstring Encrypt(wstring PlainText);
@@ -77,6 +83,8 @@ public:
     // Des Key
     wstring getKey() const;
     void setKey(const wstring &value);
+
+    Sender sender;
 };
 
 #endif // DES_Hs

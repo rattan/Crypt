@@ -91,6 +91,9 @@ wstring Aes::getKey() const
     return key;
 }
 
+/*
+ * Set a Aes Key and Expand cipher key
+ */
 void Aes::setKey(const wstring &value,int c_key_len)
 {
     key = value;
@@ -101,14 +104,20 @@ void Aes::setKey(const wstring &value,int c_key_len)
     case 192: round_count = 12; break;
     case 256: round_count = 14; break;
     }
-    for(int i=0;i<cipher_key_length/16;++i)
+    int i=0;
+    for(auto c : value)
     {
-        key_256[i*2] = key[i]>>8&0x00ff;
-        key_256[i*2+1] = key[i]&0x00ff;
+        key_256[i++] = c>>8&0x00ff;
+        key_256[i++] = c&0x00ff;
     }
+    for(int j=i;j<cipher_key_length/8;++j) key_256[j] = 0x00;
+
     _key_Expansion();
 }
 
+/*
+ * Encrypt interface
+ */
 wstring Aes::Encrypt(wstring source)
 {
     clear_state();
@@ -119,15 +128,6 @@ wstring Aes::Encrypt(wstring source)
         state_src[j*2+1][i] = c&0x00ff;
         if(++j == 2){j = 0;++i;if(i>4)break;}
     }
-
-//    for(int i=0;i<4;++i)
-//    {
-//        for(int j=0;j<2;++j)
-//        {
-//            state_src[j*2][i] = source[i*2+j]>>8&0x00ff;
-//            state_src[j*2+1][i] = source[i*2+j]&0x00ff;
-//        }
-//    }
     _Encrypt();
     wstring result;
     for(int i=0;i<4;++i)
@@ -141,6 +141,9 @@ wstring Aes::Encrypt(wstring source)
     return result;
 }
 
+/*
+ * Decrypt interface
+ */
 wstring Aes::Decrypt(wstring source)
 {
     clear_state();
@@ -151,14 +154,6 @@ wstring Aes::Decrypt(wstring source)
         state_dst[j*2+1][i] = c&0x00ff;
         if(++j == 2){j = 0;++i;if(i>4)break;}
     }
-//    for(int i=0;i<4;++i)
-//    {
-//        for(int j=0;j<2;++j)
-//        {
-//            state_dst[j*2][i] = source[i*2+j]>>8&0x00ff;
-//            state_dst[j*2+1][i] = source[i*2+j]&0x00ff;
-//        }
-//    }
     _Decrypt();
     wstring result;
     for(int i=0;i<4;++i)
@@ -171,11 +166,33 @@ wstring Aes::Decrypt(wstring source)
     return result;
 }
 
+/*
+ * Key Expander
+ * expand cipher key
+ * 128bit - 176Byte
+ * 192bit - 208Byte
+ * 256bit - 240Byte
+ */
 void Aes::_key_Expansion()
 {
+
     const uint8_t RCon[] = {0x01,0x02,0x04,0x08,0x10,0x20,0x040,0x80,0x1B,0x36,0x6C,0xD8,0xAB,0x4D,0x9A};
     int key_bl = cipher_key_length/8;
-    for(int i=0;i<key_bl;++i) expand_key[i] = key_256[i];
+
+//    cout<<"AED Key Expand["<<cipher_key_length<<"bit] : \nPre Round Key : ";
+    sender.send_str("AED Key Expand["+to_string(cipher_key_length)+"bit] :");
+
+    string print;
+    char temp[4] = {0};
+    for(int i=0;i<key_bl;++i)
+    {
+        expand_key[i] = key_256[i];
+        sprintf(temp,"%02X ",expand_key[i]);
+        print+=temp;
+//        printf("%02X ",expand_key[i]);
+    }
+    sender.send_str("Pre Round Key : " + print);
+//    cout<<endl;
 
     int ke_r_cnt = 0;
     switch(cipher_key_length)
@@ -185,30 +202,36 @@ void Aes::_key_Expansion()
     case keylen_256: ke_r_cnt = 7; break;
     }
 
-
     for(int i=0;i<ke_r_cnt;++i)
     {
+        cout<<"Round Key["<<i+1<<"] : ";
         array<uint8_t,4> tempw;
         for(int j=0;j<4;++j) tempw[j] = expand_key[i*key_bl+key_bl-4+j];
         tempw = _make_temp_word(tempw,RCon[i]);
-        for(int j=0;j<4;++j) expand_key[i*key_bl+key_bl+j] = tempw[j] ^ expand_key[i*key_bl+j];
-        for(int j=4;j<16;++j) expand_key[i*key_bl+key_bl+j] = expand_key[i*key_bl+key_bl-4+j] ^ expand_key[i*key_bl+j];
+        for(int j=0;j<4;++j){ expand_key[i*key_bl+key_bl+j] = tempw[j] ^ expand_key[i*key_bl+j]; sprintf(temp,"%02X ",expand_key[i*key_bl+key_bl+j]);print = temp;}
+        for(int j=4;j<16;++j){ expand_key[i*key_bl+key_bl+j] = expand_key[i*key_bl+key_bl-4+j] ^ expand_key[i*key_bl+j]; sprintf(temp,"%02X ",expand_key[i*key_bl+key_bl+j]);print += temp;}
 
-        if(i == ke_r_cnt-1) break;
+        if(i == ke_r_cnt-1) {sender.send_str("Round Key["+to_string(i+1)+"] : "+print+"\n"); break;}
         switch(cipher_key_length)
         {
         case keylen_128: break;
         case keylen_192:
-            for(int j=16;j<24;++j) expand_key[i*key_bl+key_bl+j] = expand_key[i*key_bl+key_bl-4+j] ^ expand_key[i*key_bl+j];
+            for(int j=16;j<24;++j) { expand_key[i*key_bl+key_bl+j] = expand_key[i*key_bl+key_bl-4+j] ^ expand_key[i*key_bl+j]; sprintf(temp,"%02X ",expand_key[i*key_bl+key_bl+j]);print += temp;}
             break;
         case keylen_256:
-            for(int j=16;j<20;++j) expand_key[i*key_bl+key_bl+j] = T_S_Box[expand_key[i*key_bl+key_bl-4+j]>>4&0x0f][expand_key[i*key_bl+key_bl-4+j]&0x0f] ^ expand_key[i*key_bl+j];
+            for(int j=16;j<20;++j) { expand_key[i*key_bl+key_bl+j] = T_S_Box[expand_key[i*key_bl+key_bl-4+j]>>4&0x0f][expand_key[i*key_bl+key_bl-4+j]&0x0f] ^ expand_key[i*key_bl+j]; sprintf(temp,"%02X ",expand_key[i*key_bl+key_bl+j]);print += temp;}
+            for(int j=20;j<32;++j) { expand_key[i*key_bl+key_bl+j] = expand_key[i*key_bl+key_bl-4+j] ^ expand_key[i*key_bl+j]; sprintf(temp,"%02X ",expand_key[i*key_bl+key_bl+j]);print += temp;}
             break;
         }
-
+        sender.send_str("Round Key["+to_string(i+1)+"] : "+print);
+//        cout<<endl;
     }
+//    cout<<"\n\n";
 }
 
+/*
+ * Make Temporary word
+ */
 array<uint8_t,4> Aes::_make_temp_word(array<uint8_t, 4> w, uint8_t RCon)
 {
     array<uint8_t,4> temp;
@@ -225,6 +248,9 @@ array<uint8_t,4> Aes::_make_temp_word(array<uint8_t, 4> w, uint8_t RCon)
     return res_word;
 }
 
+/*
+ * Sub Byte
+ */
 array2d<uint8_t,4,4> Aes::_sub_bytes(array2d<uint8_t,4,4> src_state, const uint8_t table[][16])
 {
     array2d<uint8_t,4,4> res_state;
@@ -232,13 +258,17 @@ array2d<uint8_t,4,4> Aes::_sub_bytes(array2d<uint8_t,4,4> src_state, const uint8
     {
         for(int j=0;j<4;++j)
         {
-            uint8_t index = src_state[i][j];
-            res_state[i][j] = table[index>>4&0x0f][index&0x0f];
+            res_state[i][j] = table[src_state[i][j]>>4&0x0f][src_state[i][j]&0x0f];
         }
     }
     return res_state;
 }
 
+/*
+ * Shift rows with 'sel' policy
+ * forward - shift right
+ * inverse - shift left
+ */
 template<typename T>
 array2d<uint8_t,4,4> Aes::_shift_rows(array2d<uint8_t,4,4> src_state, T sel)
 {
@@ -253,8 +283,9 @@ array2d<uint8_t,4,4> Aes::_shift_rows(array2d<uint8_t,4,4> src_state, T sel)
     return res_state;
 }
 
-
-
+/*
+ * mix columns with galois table
+ */
 array2d<uint8_t,4,4> Aes::_mix_columns(array2d<uint8_t,4,4> src_state, const uint8_t table[][4])
 {
     array2d<uint8_t,4,4> res_state;
@@ -266,8 +297,8 @@ array2d<uint8_t,4,4> Aes::_mix_columns(array2d<uint8_t,4,4> src_state, const uin
             for(int k=0;k<4;++k)
             {
                 int eind = T_Mix_Col_L[src_state[k][i]>>4&0x0f][src_state[k][i]&0x0f] + T_Mix_Col_L[table[j][k]>>4&0x0f][table[j][k]&0x0f];
-                if(eind>0xff) eind -= 0xff;
-                temp ^= T_Mix_Col_E[eind>>4&0x0f][eind&0x0f];
+                if(eind > 0xff) eind -= 0xff;
+                if(src_state[k][i] != 0x00) temp ^= T_Mix_Col_E[eind>>4&0x0f][eind&0x0f];
             }
             res_state[j][i] = temp;
         }
@@ -275,58 +306,85 @@ array2d<uint8_t,4,4> Aes::_mix_columns(array2d<uint8_t,4,4> src_state, const uin
     return res_state;
 }
 
-template<typename T>
-array2d<uint8_t,4,4> Aes::_add_round_key(array2d<uint8_t,4,4> src_state, const int ex_key_index,T sel)
+/*
+ *  Add Expanded round key
+ */
+array2d<uint8_t,4,4> Aes::_add_round_key(array2d<uint8_t,4,4> src_state, const int ex_key_index)
 {
     array2d<uint8_t,4,4> res_state;
     for(int i=0;i<4;++i)
     {
         for(int j= 0;j<4;++j)
         {
-            res_state[j][i] = src_state[j][i] ^ sel(expand_key[ex_key_index + i*4+j],T_Const_Mix_Inv[j][i]);
+            res_state[j][i] = src_state[j][i] ^ expand_key[ex_key_index + i*4+j];
         }
     }
     return res_state;
 }
 
+/*
+ * Encrypt
+ */
 void Aes::_Encrypt()
 {
-    array2d<uint8_t,4,4> buffer;
-    buffer = _add_round_key(state_src,0,add_round());
+    array2d<uint8_t,4,4> buffer = _add_round_key(state_src,0);
+
+//    cout<<"AES Encrypt Round States : \nAfter Pre-round-transformation : "<<endl;
+    sender.send_str("AES Encrypt Round States : \nAfter Pre-round-transformation : ");
+    cout_state(buffer);
+
     for(int i=0;i<round_count;++i)
     {
         buffer = _sub_bytes(buffer,T_S_Box);
         buffer = _shift_rows(buffer,shift_row());
         if(round_count-1 != i)buffer = _mix_columns(buffer,T_Const_Mix);
-        buffer = _add_round_key(buffer,i*16+16,add_round());
+
+        buffer = _add_round_key(buffer,i*16+16);
+//        cout<<"After Round["<<i+1<<"] : "<<endl;
+        sender.send_str("After Round["+to_string(i+1)+"] : ");
+        cout_state(buffer);
     }
+    sender.send_str("");
     state_dst = buffer;
 }
 
+/*
+ * Decrypt
+ */
 void Aes::_Decrypt()
 {
-    array2d<uint8_t,4,4> buffer;
-
     int preround_index = 0;
     switch(cipher_key_length)
     {
     case keylen_128: preround_index = 160; break;
     case keylen_192: preround_index = 192; break;
-    case keylen_256: preround_index = 234; break;
+    case keylen_256: preround_index = 224; break;
     }
 
-    buffer = _add_round_key(state_dst,preround_index,add_round());
+    array2d<uint8_t,4,4> buffer = _add_round_key(state_dst,preround_index);
+
+//    cout<<"AES Decrypt Round States : \nAfter Pre-round-transformation : "<<endl;
+    sender.send_str("AES Decrypt Round States : \nAfter Pre-round-transformation : ");
+    cout_state(buffer);
+
     for(int i=round_count-1;i>=0;--i)
     {
         buffer = _shift_rows(buffer,shift_row_inv());
         buffer = _sub_bytes(buffer,T_S_Box_Inv);
-        /*if(round_count!=0)*/ buffer = _add_round_key(buffer,i*16,add_round());
-        if(round_count!=0) buffer = _mix_columns(buffer,T_Const_Mix_Inv);
-//        else buffer = _add_round_key(buffer,0,add_round());
+        buffer = _add_round_key(buffer,i*16);
+        if(i!=0) buffer = _mix_columns(buffer,T_Const_Mix_Inv);
+
+//        cout<<"After Round["<<round_count-i<<"] : "<<endl;
+        sender.send_str("After Round["+to_string(round_count-i)+"] : ");
+        cout_state(buffer);
     }
+    sender.send_str("");
     state_src = buffer;
 }
 
+/*
+ * Clear destination and source state all bytes
+ */
 void Aes::clear_state()
 {
     for(int i=0;i<4;++i)
@@ -336,6 +394,27 @@ void Aes::clear_state()
             state_dst[i][j] = 0x00;
             state_src[i][j] = 0x00;
         }
+    }
+}
+
+/*
+ * cout states
+ * this function show parameter state with standard output
+ */
+void Aes::cout_state(const array2d<uint8_t,4,4> src)
+{
+    string print;
+    char temp[4] = {0};
+    for(int i=0;i<4;++i)
+    {
+        for(int j=0;j<4;++j)
+        {
+            sprintf(temp,"%02X ",src[i][j]);
+            print+=temp;
+        }
+        sender.send_str(print);
+//        printf("\n");
+        print = "";
     }
 }
 

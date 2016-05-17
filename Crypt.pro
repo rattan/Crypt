@@ -4,7 +4,6 @@
 #
 #-------------------------------------------------
 
-QT       += core gui winextras
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -15,12 +14,25 @@ TEMPLATE = app
 SOURCES += main.cpp\
         widget.cpp \
     des.cpp \
-    aes.cpp
+    aes.cpp \
+    console.cpp \
+    sender.cpp
 
 HEADERS  += widget.h \
     des.h \
-    aes.h
+    aes.h \
+    console.h \
+    sender.h
 
-FORMS    += widget.ui
+FORMS    += widget.ui \
+    console.ui
 
-CONFIG += c++11
+CONFIG += c++11 static
+
+RESOURCES += \
+    resources.qrc
+
+RC_FILE = icon.rc
+
+DISTFILES += \
+    icon.rc

@@ -100,6 +100,9 @@ wstring Des::getKey() const
     return key;
 }
 
+/*
+ * Set a Des Key
+ */
 void Des::setKey(const wstring &value)
 {
     key = value;
@@ -119,18 +122,29 @@ void Des::setKey(const wstring &value)
     _R_Key_Generate();
 }
 
+/*
+ * Round Key generation
+ */
 void Des::_R_Key_Generate()
 {
     bitset<56> temp = _Parity_Drop(key_64);
     const int shift_count[] = { 1,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1 };
+    sender.send_str("DES Round Keys :");
+//    cout<<"DES Round Keys : "<<endl;
     for (int i = 0; i < 16; ++i)
     {
         temp = _Shift_Left(temp, shift_count[i]);
         round_key[i] = _Compression_P_Box(temp);
-//        show_dbg(round_key[i]);
+        sender.send_str("R Key["+to_string(i+1)+"]"+round_key[i].to_string());
+//        cout<<"R_Key["<<i<<"] : "<<round_key[i].to_string()<<endl;
     }
+    sender.send_str("");
+//    cout<<endl;
 }
 
+/*
+ * Drop parity bit
+ */
 bitset<56> Des::_Parity_Drop(bitset<64> source)
 {
     bitset<56> res_buffer;
@@ -138,13 +152,18 @@ bitset<56> Des::_Parity_Drop(bitset<64> source)
     return res_buffer;
 }
 
+/*
+ * Compress P box
+ */
 bitset<48> Des::_Compression_P_Box(bitset<56> source)
 {
     bitset<48> res_buffer;
     for (int i = 0; i < 48; ++i) res_buffer[47 - i] = source[56 - T_Compression_P_Box[i]];
     return res_buffer;
 }
-
+/*
+ * Shift Left with shiftcount
+ */
 bitset<56> Des::_Shift_Left(bitset<56> source, int shift_count)
 {
     bitset<56> res_buffer = source << shift_count;
@@ -280,14 +299,20 @@ bitset<32> Des::_Straight_P_Box(bitset<32> source)
 void Des::_Encrypt()
 {
     bitset<64> buffer = _Initial_Permutation(data_src);
-
+    sender.send_str("DES Encrypt Round States :\nAfter Initial Permutation : "+buffer.to_string());
+//    cout<<"DES Encrypt Round States :\nAfter Initial Permutation : "<<buffer.to_string()<<endl;
     for (int i = 0; i < 15; ++i)
     {
-//        show_dbg(buffer);
         buffer = _Swapper(_Mixer(buffer, i));
+        sender.send_str("After Round["+to_string(i+1)+"] : "+buffer.to_string());
+//        cout<<"After Round["<<i+1<<"] : "<<buffer.to_string()<<endl;
     }
     buffer = _Mixer(buffer, 15);
+    sender.send_str("After Round[16] : "+buffer.to_string());
+//    cout<<"After Round[16] : "<<buffer.to_string()<<endl;
     data_dst = _Final_Permutation(buffer);
+    sender.send_str("After Final Round[Result] : "+data_dst.to_string()+"\n");
+//    cout<<"After Final Round[Result] : "<<data_dst.to_string()<<endl<<endl;
 }
 
 /*
@@ -296,12 +321,20 @@ void Des::_Encrypt()
 void Des::_Decrypt()
 {
     bitset<64> buffer = _Initial_Permutation(data_dst);
+    sender.send_str("DES Decrypt Round States :\nAfter Initial Permutation : "+buffer.to_string());
+//    cout<<"DES Decrypt Round States :"<<endl<<"After Initial Permutation : "<<buffer.to_string()<<endl;
     for(int i=15;i>0;--i)
     {
         buffer = _Swapper(_Mixer(buffer, i));
+        sender.send_str("After Round["+to_string(i+1)+"] : "+buffer.to_string());
+//        cout<<"After Round["<<16-i<<"] : "<<buffer.to_string()<<endl;
     }
     buffer = _Mixer(buffer,0);
+    sender.send_str("After Round[16] : "+buffer.to_string());
+//    cout<<"After Round[16] : "<<buffer.to_string()<<endl;
     data_src = _Final_Permutation(buffer);
+    sender.send_str("After Final Round[Result] : "+data_src.to_string()+"\n");
+//    cout<<"After Final Round[Result] : "<<data_src.to_string()<<endl<<endl;
 }
 
 Des::Des()
@@ -327,7 +360,7 @@ wstring Des::Encrypt(wstring PlainText)
     data_dst.reset();
     for (int i = 0; i < PlainText.length(); ++i)
     {
-        wchar_t c = PlainText[PlainText.length() - 1 - i];
+        uint16_t c = PlainText[PlainText.length() - 1 - i];
         for (int j = 0; j < 16 && c; ++j) {
             if (c & 0x1) {
                 data_src.set(16 * i + j);
@@ -340,7 +373,7 @@ wstring Des::Encrypt(wstring PlainText)
     wstring result = L"";
     for(int i=3;i>=0;--i)
     {
-        wchar_t c = 0;
+        uint16_t c = 0;
         for(int j=0;j<16;++j)
         {
             data_dst[i*16+j] ? c|=0x01<<j : c;
@@ -360,7 +393,7 @@ wstring Des::Decrypt(wstring CipherText)
     data_dst.reset();
     for (int i = 0; i < 4; ++i)
     {
-        wchar_t c = CipherText[3 - i];
+        uint16_t c = CipherText[3 - i];
         for (int j = 0; j < 16 && c; ++j) {
             if (c & 0x1) {
                 data_dst.set(16 * i + j);
@@ -372,12 +405,12 @@ wstring Des::Decrypt(wstring CipherText)
     wstring result = L"";
     for(int i=3;i>=0;--i)
     {
-        wchar_t c = 0;
+        uint16_t c = 0;
         for(int j=0;j<16;++j)
         {
             data_src[i*16+j] ? c|=0x01<<j : c;
         }
-        if(c != 0) result += c;
+        result += c;
     }
 
     return result;

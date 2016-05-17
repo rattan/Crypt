@@ -17,12 +17,11 @@
  */
 
 #include <QWidget>
-#include <QtWin>
 #include <QGraphicsDropShadowEffect>
 
 #include "des.h"
 #include "aes.h"
-
+#include "console.h"
 namespace Ui {
 class Widget;
 }
@@ -34,6 +33,7 @@ class Widget : public QWidget
 public:
     explicit Widget(QWidget *parent = 0);
     ~Widget();
+    Console console;
 
 private slots:
     void on_push_enc_clicked();
@@ -53,6 +53,8 @@ private slots:
 
     void on_radio_aes_clicked();
 
+    void on_push_console_clicked();
+
 private:
     Ui::Widget *ui;
     Des des;
@@ -61,6 +63,8 @@ private:
     bool ch_key_h,ch_key;
     bool ch_plain_h,ch_plain;
     bool ch_cipher_h,ch_cipher;
+
+    void closeEvent(QCloseEvent* e);
 
 };
 
