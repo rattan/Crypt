@@ -36,3 +36,5 @@ RC_FILE = icon.rc
 
 DISTFILES += \
     icon.rc
+
+ICON = Lock.icns

@@ -105,7 +105,7 @@ void Widget::on_text_plain_textChanged()
     for(auto c:ui->text_plain->toPlainText())
     {
         QString temp;
-        temp.sprintf("%04X ",c);
+        temp.sprintf("%04X ",c.unicode());
         hex+=temp;
     }
     hex.remove(hex.length()-1,1);
@@ -135,8 +135,8 @@ void Widget::on_text_cipher_textChanged()
     QString hex = "";
     for(auto c:ui->text_cipher->toPlainText())
     {
-        QString temp;
-        temp.sprintf("%04X ",c);
+        QString temp = "";
+        temp.sprintf("%04X ",c.unicode());
         hex+=temp;
     }
     hex.remove(hex.length()-1,1);
@@ -165,7 +165,7 @@ void Widget::on_line_key_textChanged(const QString &arg1)
     QString hex = "";
     for(auto c:arg1)
     {
-        QString temp;
+        QString temp = "";
         temp.sprintf("%04X ",c.unicode());
         hex+=temp;
     }
