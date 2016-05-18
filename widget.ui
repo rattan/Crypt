@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>688</width>
-    <height>518</height>
+    <width>731</width>
+    <height>542</height>
    </rect>
   </property>
   <property name="font">
@@ -20,12 +20,30 @@
    <string>컴퓨터공학과 21011772 강진구</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>:/lock-icon.png</normaloff>:/lock-icon.png</iconset>
+   <iconset resource="resources.qrc">
+    <normaloff>:/Lock.ico</normaloff>:/Lock.ico</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="4" column="2">
-    <widget class="QRadioButton" name="radio_192">
+   <item row="1" column="1" rowspan="8">
+    <widget class="QTextEdit" name="text_cipher">
+     <property name="minimumSize">
+      <size>
+       <width>290</width>
+       <height>200</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <family>Apple SD Gothic Neo</family>
+       <pointsize>14</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="2">
+    <widget class="QRadioButton" name="radio_256">
      <property name="enabled">
       <bool>true</bool>
      </property>
@@ -36,64 +54,11 @@
       </font>
      </property>
      <property name="text">
-      <string>192bit</string>
+      <string>256bit</string>
      </property>
      <attribute name="buttonGroup">
       <string notr="true">buttonGroup</string>
      </attribute>
-    </widget>
-   </item>
-   <item row="0" column="2">
-    <widget class="QRadioButton" name="radio_des">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>17</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>15</height>
-      </size>
-     </property>
-     <property name="font">
-      <font>
-       <family>돋움체</family>
-       <pointsize>10</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>DES</string>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-     <attribute name="buttonGroup">
-      <string notr="true">buttonGroup_2</string>
-     </attribute>
-    </widget>
-   </item>
-   <item row="9" column="1">
-    <widget class="QLabel" name="label_3">
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>15</height>
-      </size>
-     </property>
-     <property name="font">
-      <font>
-       <family>돋움체</family>
-       <pointsize>10</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>Cipher Text (Hex)</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
     </widget>
    </item>
    <item row="1" column="0" rowspan="8">
@@ -106,47 +71,38 @@
      </property>
      <property name="font">
       <font>
-       <family>돋움체</family>
-       <pointsize>10</pointsize>
+       <family>Apple SD Gothic Neo</family>
+       <pointsize>14</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
       </font>
      </property>
     </widget>
    </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="label">
-     <property name="maximumSize">
+   <item row="13" column="0" colspan="3">
+    <widget class="QLineEdit" name="line_key_hex">
+     <property name="minimumSize">
       <size>
-       <width>16777215</width>
-       <height>15</height>
+       <width>650</width>
+       <height>0</height>
       </size>
      </property>
      <property name="font">
       <font>
-       <family>돋움체</family>
-       <pointsize>10</pointsize>
+       <family>Apple SD Gothic Neo</family>
+       <pointsize>14</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
       </font>
      </property>
      <property name="text">
-      <string>Plain Text</string>
+      <string/>
      </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
+     <property name="placeholderText">
+      <string>Key (Hex)</string>
      </property>
-    </widget>
-   </item>
-   <item row="1" column="1" rowspan="8">
-    <widget class="QTextEdit" name="text_cipher">
-     <property name="minimumSize">
-      <size>
-       <width>290</width>
-       <height>200</height>
-      </size>
-     </property>
-     <property name="font">
-      <font>
-       <family>돋움체</family>
-       <pointsize>10</pointsize>
-      </font>
+     <property name="clearButtonEnabled">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
@@ -194,12 +150,211 @@
      </property>
     </widget>
    </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>15</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <family>돋움체</family>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Plain Text</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="QRadioButton" name="radio_des">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>18</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>15</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <family>돋움체</family>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>DES</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+     <attribute name="buttonGroup">
+      <string notr="true">buttonGroup_2</string>
+     </attribute>
+    </widget>
+   </item>
+   <item row="2" column="2">
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="2">
+    <widget class="QPushButton" name="push_console">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>console</string>
+     </property>
+     <property name="icon">
+      <iconset resource="resources.qrc">
+       <normaloff>:/terminal.ico</normaloff>:/terminal.ico</iconset>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="1">
+    <widget class="QLabel" name="label_3">
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>15</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <family>돋움체</family>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Cipher Text (Hex)</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="2">
+    <widget class="QLabel" name="label_5">
+     <property name="maximumSize">
+      <size>
+       <width>100</width>
+       <height>100</height>
+      </size>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="pixmap">
+      <pixmap resource="resources.qrc">:/Lock.ico</pixmap>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2">
+    <widget class="QRadioButton" name="radio_128">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="font">
+      <font>
+       <family>돋움체</family>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>128bit</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+     <attribute name="buttonGroup">
+      <string notr="true">buttonGroup</string>
+     </attribute>
+    </widget>
+   </item>
+   <item row="10" column="2">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>87</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="6" column="2">
+    <widget class="QPushButton" name="push_enc">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <family>돋움체</family>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Encryption</string>
+     </property>
+     <property name="icon">
+      <iconset resource="resources.qrc">
+       <normaloff>:/stock_lock.ico</normaloff>:/stock_lock.ico</iconset>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="2">
+    <widget class="QPushButton" name="push_dec">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <family>돋움체</family>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Decryption</string>
+     </property>
+     <property name="icon">
+      <iconset resource="resources.qrc">
+       <normaloff>:/stock_lock_open.ico</normaloff>:/stock_lock_open.ico</iconset>
+     </property>
+    </widget>
+   </item>
    <item row="1" column="2">
     <widget class="QRadioButton" name="radio_aes">
      <property name="minimumSize">
       <size>
        <width>0</width>
-       <height>17</height>
+       <height>18</height>
       </size>
      </property>
      <property name="maximumSize">
@@ -225,8 +380,8 @@
      </attribute>
     </widget>
    </item>
-   <item row="3" column="2">
-    <widget class="QRadioButton" name="radio_128">
+   <item row="4" column="2">
+    <widget class="QRadioButton" name="radio_192">
      <property name="enabled">
       <bool>true</bool>
      </property>
@@ -237,103 +392,14 @@
       </font>
      </property>
      <property name="text">
-      <string>128bit</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
+      <string>192bit</string>
      </property>
      <attribute name="buttonGroup">
       <string notr="true">buttonGroup</string>
      </attribute>
     </widget>
    </item>
-   <item row="6" column="2">
-    <widget class="QPushButton" name="push_enc">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>25</height>
-      </size>
-     </property>
-     <property name="font">
-      <font>
-       <family>돋움체</family>
-       <pointsize>10</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>Encryption</string>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="2">
-    <widget class="QPushButton" name="push_dec">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>25</height>
-      </size>
-     </property>
-     <property name="font">
-      <font>
-       <family>돋움체</family>
-       <pointsize>10</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>Decryption</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="2">
-    <widget class="QRadioButton" name="radio_256">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="font">
-      <font>
-       <family>돋움체</family>
-       <pointsize>10</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>256bit</string>
-     </property>
-     <attribute name="buttonGroup">
-      <string notr="true">buttonGroup</string>
-     </attribute>
-    </widget>
-   </item>
-   <item row="8" column="2">
-    <widget class="QPushButton" name="push_console">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>25</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>console</string>
-     </property>
-    </widget>
-   </item>
-   <item row="10" column="0">
-    <widget class="QTextEdit" name="text_plain_hex">
-     <property name="minimumSize">
-      <size>
-       <width>290</width>
-       <height>200</height>
-      </size>
-     </property>
-     <property name="font">
-      <font>
-       <family>돋움체</family>
-       <pointsize>10</pointsize>
-      </font>
-     </property>
-    </widget>
-   </item>
-   <item row="10" column="1">
+   <item row="10" column="1" rowspan="2">
     <widget class="QTextEdit" name="text_cipher_hex">
      <property name="minimumSize">
       <size>
@@ -343,24 +409,28 @@
      </property>
      <property name="font">
       <font>
-       <family>돋움체</family>
-       <pointsize>10</pointsize>
+       <family>Apple SD Gothic Neo</family>
+       <pointsize>14</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
       </font>
      </property>
     </widget>
    </item>
-   <item row="11" column="0" colspan="3">
+   <item row="12" column="0" colspan="3">
     <widget class="QLineEdit" name="line_key">
      <property name="minimumSize">
       <size>
-       <width>600</width>
+       <width>650</width>
        <height>0</height>
       </size>
      </property>
      <property name="font">
       <font>
-       <family>돋움체</family>
-       <pointsize>10</pointsize>
+       <family>Apple SD Gothic Neo</family>
+       <pointsize>14</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
       </font>
      </property>
      <property name="text">
@@ -374,35 +444,28 @@
      </property>
     </widget>
    </item>
-   <item row="12" column="0" colspan="3">
-    <widget class="QLineEdit" name="line_key_hex">
+   <item row="10" column="0" rowspan="2">
+    <widget class="QTextEdit" name="text_plain_hex">
      <property name="minimumSize">
       <size>
-       <width>600</width>
-       <height>0</height>
+       <width>290</width>
+       <height>200</height>
       </size>
      </property>
      <property name="font">
       <font>
-       <family>돋움체</family>
-       <pointsize>10</pointsize>
+       <family>Apple SD Gothic Neo</family>
+       <pointsize>14</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
       </font>
      </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="placeholderText">
-      <string>Key (Hex)</string>
-     </property>
-     <property name="clearButtonEnabled">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="2">
-    <widget class="Line" name="line">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+     <property name="html">
+      <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Apple SD Gothic Neo'; font-size:14pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'돋움체'; font-size:10pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>
@@ -416,10 +479,12 @@
   <tabstop>radio_des</tabstop>
   <tabstop>radio_aes</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_2"/>
  </buttongroups>
 </ui>

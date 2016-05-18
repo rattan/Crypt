@@ -1,5 +1,8 @@
 <RCC>
     <qresource prefix="/">
         <file>Lock.ico</file>
+        <file>stock_lock_open.ico</file>
+        <file>stock_lock.ico</file>
+        <file>terminal.ico</file>
     </qresource>
 </RCC>
